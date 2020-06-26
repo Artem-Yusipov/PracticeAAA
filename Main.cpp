@@ -10,29 +10,6 @@ auto episodes = 10;
 auto screenBuff = cv::Mat(480, 640, CV_8UC3);
 double count = 0;
 
-std::vector<double> killsprite(int x, int a)
-{
-    std::vector<double> actions[4];
-    actions[0] = { 1, 0, 0, 0 };
-    actions[1] = { 0, 1, 0, 0 };
-    actions[2] = { 0, 0, 1, 0 };
-    actions[3] = { 0, 0, 0, 1 };
-
-    if (x > 320 + a)
-    {
-        return actions[1];
-    }
-    if (x < 320 - a)
-    {
-        return actions[0];
-    }
-    else
-    {
-        return actions[3];
-    }
-}
-
-
 
 void RunTask1(int episode)
 {
@@ -229,12 +206,205 @@ void RunTask2(int episode)
 }
 
 
+
+
+void RunTask3(int episodes) {
+	std::vector<double> actions[4];
+	actions[0] = { 1, 0, 0, 0 };
+	actions[1] = { 0, 1, 0, 0 };
+	actions[2] = { 0, 0, 1, 0 };
+	actions[3] = { 0, 0, 0, 1 };
+	try
+	{
+		game->loadConfig(path + "/scenarios/task3.cfg");
+		game->init();
+	}
+	catch (std::exception& e)
+	{
+		std::cout << e.what() << std::endl;
+	}
+
+	for (auto i = 0; i < episodes; i++)
+	{
+		game->newEpisode();
+		std::cout << "Episode #" << i + 1 << std::endl;
+
+		while (!game->isEpisodeFinished())
+		{
+			const auto& gamestate = game->getState();
+
+			std::memcpy(screenBuff.data, gamestate->screenBuffer->data(), gamestate->screenBuffer->size());
+
+			cv::Mat img = screenBuff;
+			cv::Mat med = cv::imread("./sprites/Pickups/media0.png");
+			cv::Mat result;
+
+			double minval, maxval; cv::Point minLoc, maxLoc;
+			int res_cols = img.cols - med.cols + 1;
+			int res_rows = img.rows - med.rows + 1;
+
+			result.create(res_cols, res_rows, CV_32FC1);
+			cv::matchTemplate(img, med, result, 4);
+			cv::normalize(result, result, 0, 1, cv::NORM_MINMAX, -1, cv::Mat());
+
+			cv::Rect roi(290, 0, 60, result.rows);
+            result = result(roi);
+			cv::minMaxLoc(result, &minval, &maxval, &minLoc, &maxLoc);
+
+			rectangle(img, maxLoc, cv::Point(maxLoc.x + med.cols, maxLoc.y + med.rows), cv::Scalar::all(0), 2, 8, 0);
+			rectangle(result, minLoc, cv::Point(minLoc.x + med.cols, minLoc.y + med.rows), cv::Scalar::all(0), 2, 8, 0);
+
+			if (maxLoc.y < 390) {
+				if (290 + maxLoc.x < 300) game->makeAction(actions[0]);
+				else if (290 + maxLoc.x > 340) game->makeAction(actions[1]);
+				else game->makeAction(actions[3]);
+			}
+			else game->makeAction(actions[0]);
+			cv::imshow("Gray", result);
+
+			cv::waitKey(sleepTime);
+		}
+
+		std::cout << game->getTotalReward() << std::endl;
+		count += game->getTotalReward(); 
+	}
+}
+
+
+
+void RunTask4(int episodes) {
+	std::vector<double> actions[4];
+	actions[0] = { 1, 0, 0, 0 };
+	actions[1] = { 0, 1, 0, 0 };
+	actions[2] = { 0, 0, 1, 0 };
+	actions[3] = { 0, 0, 0, 1 };
+	try
+	{
+		game->loadConfig(path + "/scenarios/task4.cfg");
+		game->init();
+	}
+	catch (std::exception& e)
+	{
+		std::cout << e.what() << std::endl;
+	}
+
+	for (auto i = 0; i < episodes; i++)
+	{
+		game->newEpisode();
+		std::cout << "Episode #" << i + 1 << std::endl;
+
+		while (!game->isEpisodeFinished())
+		{
+			const auto& gamestate = game->getState();
+
+			std::memcpy(screenBuff.data, gamestate->screenBuffer->data(), gamestate->screenBuffer->size());
+
+			cv::Mat img = screenBuff;
+			cv::Mat med = cv::imread("./sprites/Pickups/media0.png");
+			cv::Mat result;
+
+			double minval, maxval; cv::Point minLoc, maxLoc;
+			int res_cols = img.cols - med.cols + 1;
+			int res_rows = img.rows - med.rows + 1;
+
+			result.create(res_cols, res_rows, CV_32FC1);
+			cv::matchTemplate(img, med, result, 4);
+			cv::normalize(result, result, 0, 1, cv::NORM_MINMAX, -1, cv::Mat());
+
+			cv::Rect roi(290, 0, 60, result.rows);
+			result = result(roi);
+			cv::minMaxLoc(result, &minval, &maxval, &minLoc, &maxLoc);
+
+			rectangle(img, maxLoc, cv::Point(maxLoc.x + med.cols, maxLoc.y + med.rows), cv::Scalar::all(0), 2, 8, 0);
+			rectangle(result, minLoc, cv::Point(minLoc.x + med.cols, minLoc.y + med.rows), cv::Scalar::all(0), 2, 8, 0);
+
+			if (maxLoc.y < 390) {
+				if (290 + maxLoc.x < 300) game->makeAction(actions[0]);
+				else if (290 + maxLoc.x > 340) game->makeAction(actions[1]);
+				else game->makeAction(actions[3]);
+			}
+			else game->makeAction(actions[0]);
+			cv::imshow("Gray", result);
+
+			cv::waitKey(sleepTime);
+		}
+
+		std::cout << game->getTotalReward() << std::endl;
+		count += game->getTotalReward();
+	}
+}
+
+
+
+void RunTask5(int episodes) {
+	std::vector<double> actions[3];
+	actions[0] = { 0, 0, 0 };
+	actions[1] = { 1, 0, 0, };
+	actions[2] = { 0, 1, 0 };
+	try
+	{
+		game->loadConfig(path + "/scenarios/task5.cfg");
+		game->init();
+	}
+	catch (std::exception& e)
+	{
+		std::cout << e.what() << std::endl;
+	}
+
+	for (auto i = 0; i < episodes; i++)
+	{
+		game->newEpisode();
+		std::cout << "Episode #" << i + 1 << std::endl;
+
+		while (!game->isEpisodeFinished())
+		{
+			const auto& gamestate = game->getState();
+
+			std::memcpy(screenBuff.data, gamestate->screenBuffer->data(), gamestate->screenBuffer->size());
+
+			cv::Mat img = screenBuff;
+			cv::Mat med = cv::imread("./sprites/Effects/bal1a0.png");
+			cv::Mat result;
+
+			double minval, maxval; cv::Point minLoc, maxLoc;
+			int res_cols = img.cols - med.cols + 1;
+			int res_rows = img.rows - med.rows + 1;
+
+			result.create(res_cols, res_rows, CV_32FC1);
+			cv::matchTemplate(img, med, result, 4);
+			cv::normalize(result, result, 0, 1, cv::NORM_MINMAX, -1, cv::Mat());
+
+			cv::minMaxLoc(result, &minval, &maxval, &minLoc, &maxLoc);
+
+			rectangle(img, maxLoc, cv::Point(maxLoc.x + med.cols, maxLoc.y + med.rows), cv::Scalar::all(0), 2, 8, 0);
+			rectangle(result, minLoc, cv::Point(minLoc.x + med.cols, minLoc.y + med.rows), cv::Scalar::all(0), 2, 8, 0);
+
+			if (maxLoc.y < 390) {
+				if (minLoc.x < 20) game->makeAction(actions[2]);
+				if ( maxLoc.x < 320) game->makeAction(actions[1]);
+				else if (maxLoc.x > 320) game->makeAction(actions[2]);
+				else game->makeAction(actions[0]);
+			}
+			else game->makeAction(actions[0]);
+			cv::imshow("Gray", result);
+
+			cv::waitKey(sleepTime);
+		}
+
+		std::cout << game->getTotalReward() << std::endl;
+		count += game->getTotalReward();
+	}
+}
+
+
+
+
 int main()
 {
     game->setViZDoomPath(path + "\\vizdoom.exe");
     game->setDoomGamePath(path + "\\freedoom2.wad");
 
-    RunTask2(episodes);
+    RunTask5(episodes);
 
     std::cout << " " << std::endl;
     std::cout << "Average sum " << count / 10 << std::endl;
